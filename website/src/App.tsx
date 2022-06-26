@@ -1,26 +1,55 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import logo from "./logo.svg";
+import "./App.css";
+import { addPerson, getPeople, Person } from "./apiClient";
+import { AddPersonRequest } from "../../functions/savePerson";
 
-function App() {
+const App = () => {
+  const [people, setPeople] = useState<Person[]>([]);
+  const [name, setName] = useState<string>("");
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await getPeople();
+      setPeople(response.people);
+    };
+    fetchData();
+  }, []);
+
+  const handleSubmit = async () => {
+    if (name) {
+      const newPerson: AddPersonRequest = {
+        name: name,
+      };
+
+      const response = await addPerson(newPerson);
+
+      setPeople([...people, response]);
+    }
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div>
+        <input
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Enter your name"
+          type="text"
+          value={name}
+        />
+        <button onClick={handleSubmit}>Save</button>
+      </div>
+      <div className="container">
+        {people.map((person) => {
+          return (
+            <div key={person.id} className="item">
+              <span>{person.name}</span>
+              <span>{person.id}</span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
-}
+};
 
 export default App;
