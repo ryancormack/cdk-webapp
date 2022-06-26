@@ -1,7 +1,14 @@
 import { Construct } from "constructs";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
-import { CfnOutput, DockerImage, Fn, Stack, StackProps } from "aws-cdk-lib";
+import {
+  CfnOutput,
+  DockerImage,
+  Fn,
+  RemovalPolicy,
+  Stack,
+  StackProps,
+} from "aws-cdk-lib";
 import { execSync, ExecSyncOptions } from "child_process";
 import { join } from "path";
 import { copySync } from "fs-extra";
@@ -21,10 +28,6 @@ export class FullstackExchangeFrontendStack extends Stack {
       url = value.Parameter.Value;
     } catch (error) {
       console.error("Unable to get API URL. Ensure API has been deployed");
-    }
-
-    if (!url) {
-      throw "API not deployed";
     }
 
     const execOptions: ExecSyncOptions = {
@@ -64,6 +67,8 @@ export class FullstackExchangeFrontendStack extends Stack {
       websiteIndexDocument: "index.html",
       publicReadAccess: true,
       bucketName: "ryan-fullstack-exchange",
+      autoDeleteObjects: true,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
 
     const deploymentBucket = new BucketDeployment(this, "DeployBucket", {

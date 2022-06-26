@@ -10,7 +10,9 @@ const App = () => {
   useEffect(() => {
     const fetchData = async () => {
       const response = await getPeople();
-      setPeople(response.people);
+      if (response && response?.people?.length > 0) {
+        setPeople(response.people);
+      }
     };
     fetchData();
   }, []);
@@ -39,7 +41,7 @@ const App = () => {
         <button onClick={handleSubmit}>Save</button>
       </div>
       <div className="container">
-        {people.map((person) => {
+        {people?.map((person) => {
           return (
             <div key={person.id} className="item">
               <span>{person.name}</span>

@@ -1,7 +1,7 @@
 {
   "FullstackExchangeBackendStack": {
-    "PersonApiEndpointF3A40753": "https://x5z8x5rr71.execute-api.eu-west-1.amazonaws.com/prod/",
-    "ApiUrl": "https://x5z8x5rr71.execute-api.eu-west-1.amazonaws.com/prod/"
+    "PersonApiEndpointF3A40753": "https://slkzf8kcn9.execute-api.eu-west-1.amazonaws.com/prod/",
+    "ApiUrl": "https://slkzf8kcn9.execute-api.eu-west-1.amazonaws.com/prod/"
   },
   "FullstackExchangeFrontendStack": {
     "WebsiteUrl": "ryan-fullstack-exchange.s3-website-eu-west-1.amazonaws.com"
