@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
-import { FullstackExchangeStack } from "../lib/fullstack-exchange-stack";
+import { MyStack } from "../lib/fullstack-exchange-stack";
 
 const app = new cdk.App();
-new FullstackExchangeStack(app, "FullstackExchangeBackendStack", {});
+new MyStack(app, "FullstackExchangeBackendStack", {});

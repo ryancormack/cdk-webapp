@@ -6,11 +6,11 @@ import * as api from "aws-cdk-lib/aws-apigateway";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3Deploy from "aws-cdk-lib/aws-s3-deployment";
 
-export class FullstackExchangeStack extends cdk.Stack {
+export class MyStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const personTable = new ddb.Table(this, "PeopleTable", {
+    const myTable = new ddb.Table(this, "PeopleTable", {
       partitionKey: {
         name: "pk",
         type: ddb.AttributeType.STRING,
@@ -18,18 +18,18 @@ export class FullstackExchangeStack extends cdk.Stack {
       tableName: "ryan-fullstack-exchange",
     });
 
-    const listPeopleFunction = new NodejsFunction(this, "ListPeopleFunction", {
+    const myLambdaFunction = new NodejsFunction(this, "ListPeopleFunction", {
       functionName: "ryan-fullstack-list-people",
       entry: `functions/listPeople.ts`,
       environment: {
-        PERSON_TABLE: personTable.tableName,
+        PERSON_TABLE: myTable.tableName,
       },
     });
 
-    personTable.grantReadData(listPeopleFunction);
+    myTable.grantReadData(myLambdaFunction);
 
-    const personApi = new api.LambdaRestApi(this, "PersonApi", {
-      handler: listPeopleFunction,
+    const myApi = new api.LambdaRestApi(this, "PersonApi", {
+      handler: myLambdaFunction,
     });
 
     const webBucket = new s3.Bucket(this, "WebsiteBucket", {
