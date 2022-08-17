@@ -1,29 +1,29 @@
 import React, { useEffect, useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import { addPerson, getPeople, Person } from "./apiClient";
-import { AddPersonRequest } from "../../functions/savePerson";
+import { addTask, getTasks, Task } from "./apiClient";
+import { AddTaskRequest } from "../../functions/addTask";
 
 const App = () => {
-  const [people, setPeople] = useState<Person[]>([]);
-  const [name, setName] = useState<string>("");
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [task, setTask] = useState<string>("");
   useEffect(() => {
     const fetchData = async () => {
-      const response = await getPeople();
-      setPeople(response.people);
+      const response = await getTasks();
+      setTasks(response.tasks);
     };
     fetchData();
   }, []);
 
   const handleSubmit = async () => {
-    if (name) {
-      const newPerson: AddPersonRequest = {
-        name: name,
+    if (task) {
+      const newTask: AddTaskRequest = {
+        task: task,
       };
 
-      const response = await addPerson(newPerson);
+      const response = await addTask(newTask);
 
-      setPeople([...people, response]);
+      setTasks([...tasks, response]);
     }
   };
 
@@ -31,19 +31,18 @@ const App = () => {
     <div className="App">
       <div>
         <input
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Enter your name"
+          onChange={(e) => setTask(e.target.value)}
+          placeholder="Enter the task"
           type="text"
-          value={name}
+          value={task}
         />
         <button onClick={handleSubmit}>Save</button>
       </div>
       <div className="container">
-        {people.map((person) => {
+        {tasks.map((task) => {
           return (
-            <div key={person.id} className="item">
-              <span>{person.name}</span>
-              <span>{person.id}</span>
+            <div key={task.id} className="item">
+              <span>{task.task}</span> <span>{task.id}</span>
             </div>
           );
         })}

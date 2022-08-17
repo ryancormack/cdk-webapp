@@ -1,4 +1,4 @@
-import { CfnOutput, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
+import { RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
@@ -21,45 +21,39 @@ import {
 } from "aws-cdk-lib/aws-iam";
 import { ParameterTier, StringParameter } from "aws-cdk-lib/aws-ssm";
 
-export class FullstackExchangeBackendStack extends Stack {
+export class CdkDemoBackendStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const personTable = new Table(this, "PeopleTable", {
+    const tasksTable = new Table(this, "TasksTable", {
       partitionKey: {
-        name: "pk",
+        name: "id",
         type: AttributeType.STRING,
       },
       sortKey: {
-        name: "name",
+        name: "task",
         type: AttributeType.STRING,
       },
-      tableName: "ryan-fullstack-exchange",
+      tableName: "ryan-cdk-demo",
       removalPolicy: RemovalPolicy.DESTROY,
       billingMode: BillingMode.PAY_PER_REQUEST,
     });
 
-    const addPersonFunction = new NodejsFunction(this, "AddNameFunction", {
-      functionName: "ryan-fullstack-save-person",
+    const addTaskFunction = new NodejsFunction(this, "AddTaskFunction", {
+      functionName: "ryan-cdk-add-task",
       logRetention: RetentionDays.ONE_DAY,
-      entry: `functions/savePerson.ts`,
+      entry: `functions/addTask.ts`,
       environment: {
-        PERSON_TABLE: personTable.tableName,
+        TASKS_TABLE: tasksTable.tableName,
       },
       architecture: Architecture.ARM_64,
     });
 
-    personTable.grantReadWriteData(addPersonFunction);
+    tasksTable.grantReadWriteData(addTaskFunction);
 
-    const personApi = new RestApi(this, "PersonApi", {
-      restApiName: "PersonApi",
-      description: "API for adding people",
-      endpointTypes: [EndpointType.REGIONAL],
-      deployOptions: {
-        loggingLevel: MethodLoggingLevel.ERROR,
-        throttlingRateLimit: 20,
-        throttlingBurstLimit: 10,
-      },
+    const tasksApi = new RestApi(this, "TasksAPI", {
+      restApiName: "TaskApi",
+      description: "API for adding tasks",
       defaultCorsPreflightOptions: {
         allowHeaders: Cors.DEFAULT_HEADERS,
         allowMethods: Cors.ALL_METHODS,
@@ -67,9 +61,9 @@ export class FullstackExchangeBackendStack extends Stack {
       },
     });
 
-    personApi.root.addMethod("POST", new LambdaIntegration(addPersonFunction));
+    tasksApi.root.addMethod("POST", new LambdaIntegration(addTaskFunction));
 
-    const scanPersonApiRole = new Role(this, "ScanPersonApiRole", {
+    const scanTasksApiRole = new Role(this, "ScanTasksApiRole", {
       assumedBy: new ServicePrincipal("apigateway.amazonaws.com"),
       inlinePolicies: {
         allowDynamoScan: new PolicyDocument({
@@ -77,41 +71,38 @@ export class FullstackExchangeBackendStack extends Stack {
             new PolicyStatement({
               effect: Effect.ALLOW,
               actions: ["dynamodb:Scan"],
-              resources: [personTable.tableArn],
+              resources: [tasksTable.tableArn],
             }),
           ],
         }),
       },
     });
-    personApi.root.addMethod(
+    tasksApi.root.addMethod(
       "GET",
       new AwsIntegration({
         service: "dynamodb",
         action: "Scan",
         options: {
-          credentialsRole: scanPersonApiRole,
+          credentialsRole: scanTasksApiRole,
           requestTemplates: {
             "application/json": `
             {
-              "TableName": "${personTable.tableName}"
+              "TableName": "${tasksTable.tableName}"
             }`,
           },
           integrationResponses: [
             {
               statusCode: "200",
-              responseParameters: {
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
-              },
               responseTemplates: {
                 "application/json": `
                   #set($inputRoot = $input.path('$'))
                   {
                     "requestId": "$context.requestId",
-                    "people": [
+                    "tasks": [
                       #foreach($item in $inputRoot.Items)
                         {
-                          "id": "$item.pk.S",
-                          "name": "$item.name.S"
+                          "id": "$item.id.S",
+                          "task": "$item.task.S"
                         }#if($foreach.hasNext),#end
                       #end
                     ]
@@ -135,15 +126,12 @@ export class FullstackExchangeBackendStack extends Stack {
       }
     );
 
-    //note we need to store this value in param store so we can reference it at build time in the front end
     new StringParameter(this, "ApiUrlParameter", {
       allowedPattern: ".*",
       description: "The url of the api",
       parameterName: "ApiUrl",
-      stringValue: personApi.url,
+      stringValue: tasksApi.url,
       tier: ParameterTier.STANDARD,
     });
-    //Still use a cfn output so we see the output value printed at deploy time
-    new CfnOutput(this, "ApiUrl", { value: personApi.url });
   }
 }

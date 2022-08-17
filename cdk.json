@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/fullstack-exchange.ts",
+  "app": "npx ts-node --prefer-ts-exts bin/cdk-demo.ts",
   "watch": {
     "include": [
       "**"

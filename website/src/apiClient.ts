@@ -1,32 +1,34 @@
-import type { AddPersonRequest } from "../../functions/savePerson";
+import type { AddTaskRequest } from "../../functions/addTask";
 
-const baseUrl = process.env.REACT_APP_API_URL ?? "localhost:3000";
+const baseUrl = process.env.REACT_APP_API_URL;
 
-export type PeopleResponse = {
-  people: Person[];
+if (!baseUrl) throw new Error("No api url");
+
+export type TasksResponse = {
+  tasks: Task[];
   requestId: string;
 };
 
-export type Person = {
+export type Task = {
   id: string;
-  name: string;
+  task: string;
 };
 
-export const getPeople = async () => {
+export const getTasks = async () => {
   const result = await fetch(baseUrl);
 
-  const people: PeopleResponse = await result.json();
-  return people;
+  const tasks: TasksResponse = await result.json();
+  return tasks;
 };
 
-export const addPerson = async (newPerson: AddPersonRequest) => {
+export const addTask = async (newTask: AddTaskRequest) => {
   const reponse = await fetch(baseUrl, {
-    body: JSON.stringify(newPerson),
+    body: JSON.stringify(newTask),
     headers: { "Content-Type": "application/json" },
     method: "POST",
   });
 
-  const person: Person = await reponse.json();
+  const task: Task = await reponse.json();
 
-  return person;
+  return task;
 };

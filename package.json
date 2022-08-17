@@ -1,8 +1,8 @@
 {
-  "name": "fullstack-exchange",
+  "name": "cdk-demo",
   "version": "0.1.0",
   "bin": {
-    "fullstack-exchange": "bin/fullstack-exchange.js"
+    "cdk-demo": "bin/cdk-demo.js"
   },
   "scripts": {
     "build": "tsc",
@@ -12,8 +12,10 @@
     "run-site": "npm --prefix website run start",
     "build-site": "npm --prefix website run build",
     "assume-deploy": "aws sso login --profile ryandemo-deployment",
+    "diff": "cdk diff --profile ryandemo-deployment",
     "synth": "cdk synth --profile ryandemo-deployment",
-    "deploy": "cdk deploy --all --outputs-file ./cdk-outputs.json --profile ryandemo-deployment"
+    "deploy": "cdk deploy --all --profile ryandemo-deployment",
+    "destroy": "cdk destroy --all --profile ryandemo-deployment"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.101",
