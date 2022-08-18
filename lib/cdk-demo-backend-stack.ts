@@ -51,6 +51,18 @@ export class CdkDemoBackendStack extends Stack {
 
     tasksTable.grantReadWriteData(addTaskFunction);
 
+    const listTasksFunction = new NodejsFunction(this, "ListTasksFunction", {
+      functionName: "ryan-cdk-list-tasks",
+      logRetention: RetentionDays.ONE_DAY,
+      entry: `functions/listTasks.ts`,
+      environment: {
+        TASKS_TABLE: tasksTable.tableName,
+      },
+      architecture: Architecture.ARM_64,
+    });
+
+    tasksTable.grantReadData(listTasksFunction);
+
     const tasksApi = new RestApi(this, "TasksAPI", {
       restApiName: "TaskApi",
       description: "API for adding tasks",
@@ -62,69 +74,7 @@ export class CdkDemoBackendStack extends Stack {
     });
 
     tasksApi.root.addMethod("POST", new LambdaIntegration(addTaskFunction));
-
-    const scanTasksApiRole = new Role(this, "ScanTasksApiRole", {
-      assumedBy: new ServicePrincipal("apigateway.amazonaws.com"),
-      inlinePolicies: {
-        allowDynamoScan: new PolicyDocument({
-          statements: [
-            new PolicyStatement({
-              effect: Effect.ALLOW,
-              actions: ["dynamodb:Scan"],
-              resources: [tasksTable.tableArn],
-            }),
-          ],
-        }),
-      },
-    });
-    tasksApi.root.addMethod(
-      "GET",
-      new AwsIntegration({
-        service: "dynamodb",
-        action: "Scan",
-        options: {
-          credentialsRole: scanTasksApiRole,
-          requestTemplates: {
-            "application/json": `
-            {
-              "TableName": "${tasksTable.tableName}"
-            }`,
-          },
-          integrationResponses: [
-            {
-              statusCode: "200",
-              responseTemplates: {
-                "application/json": `
-                  #set($inputRoot = $input.path('$'))
-                  {
-                    "requestId": "$context.requestId",
-                    "tasks": [
-                      #foreach($item in $inputRoot.Items)
-                        {
-                          "id": "$item.id.S",
-                          "task": "$item.task.S"
-                        }#if($foreach.hasNext),#end
-                      #end
-                    ]
-                  }
-                `,
-              },
-            },
-          ],
-        },
-      }),
-      {
-        methodResponses: [
-          {
-            statusCode: "200",
-            responseParameters: {
-              "method.response.header.Content-Type": true,
-              "method.response.header.Access-Control-Allow-Origin": true,
-            },
-          },
-        ],
-      }
-    );
+    tasksApi.root.addMethod("GET", new LambdaIntegration(listTasksFunction));
 
     new StringParameter(this, "ApiUrlParameter", {
       allowedPattern: ".*",

@@ -2,4 +2,4 @@
 
 ## Pattern
 
-This branch contains a webapp written in Typescript and React, with a Lambda function for adding tasks and an API Service Integration for getting all tasks
+This branch contains a webapp written in Typescript and React, with a Lambda functions for adding tasks and getting all tasks
