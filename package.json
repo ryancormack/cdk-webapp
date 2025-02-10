@@ -23,7 +23,7 @@
     "@types/node": "10.17.27",
     "@types/uuid": "^8.3.4",
     "aws-cdk": "2.23.0",
-    "esbuild": "^0.14.47",
+    "esbuild": "^0.25.0",
     "fs-extra": "^10.1.0",
     "jest": "^27.5.1",
     "ts-jest": "^27.1.4",
